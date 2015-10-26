@@ -4,7 +4,9 @@ public static void main(String[] args) {
 
 
 final int maxsize = 10;
+final int masksize = maxsize+2;
 double[][][] cube = new double[maxsize][maxsize][maxsize];
+short[][][] mask = new short[masksize][masksize][masksize];
 
 /* Zero the cube */
 
@@ -16,6 +18,23 @@ for (int i=0; i<maxsize; i++) {
     }
 }
 
+for (int i=0;i<masksize;i++)
+{
+	for (int j=0;j<masksize;j++)
+	{
+		for (int k=0;j<masksize;k++)
+		{
+			if ( (i==0) || (k==0) || (j==0)||
+			     (i==masksize) || (j==masksize) || (k==masksize))
+				{
+					mask[i][j][k] = 0;
+				}
+			else
+				mask[i][j][k] = 1;
+		}
+	}
+}
+System.out.println("done");
 double diffusion_coefficient = 0.175; 
 double room_dimension = 5;                      // 5 Meters
 double speed_of_gas_molecules = 250.0;          // Based on 100 g/mol gas at RT
@@ -28,6 +47,7 @@ double DTerm = diffusion_coefficient * timestep / (distance_between_blocks*dista
 //
 cube[0][0][0] = 1.0e21;
 
+
 int pass = 0;
 double time = 0.0;  // to keep up with accumulated system time.
 double ratio = 0.0;
@@ -36,7 +56,8 @@ double ratio = 0.0;
 do {
 
 
-    for (int i=0; i<maxsize; i++) { 
+    for (int i=0; i<maxsize; i++) 
+    { 
         for (int j=0; j<maxsize; j++) { 
             for (int k=0; k<maxsize; k++) { 
                 for (int l=0; l<maxsize; l++) { 
