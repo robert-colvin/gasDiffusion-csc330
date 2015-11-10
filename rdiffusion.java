@@ -1,31 +1,34 @@
-public class  diffusion {
+public class  rdiffusion {
 
 public static void main(String[] args) {
 
 
 final int maxsize = 10;
-final int masksize = maxsize+2;
-double[][][] cube = new double[maxsize][maxsize][maxsize];
-short[][][] mask = new short[masksize][masksize][masksize];
+final int realsize = maxsize+2;
+double[][][] cube = new double[realsize][realsize][realsize];
+short[][][] mask = new short[realsize][realsize][realsize];
 
 /* Zero the cube */
 
-for (int i=0; i<maxsize; i++) { 
-    for (int j=0; j<maxsize; j++) { 
-        for (int k=0; k<maxsize; k++) { 
+for (int i=0; i<realsize; i++) { 
+    for (int j=0; j<realsize; j++) { 
+        for (int k=0; k<realsize; k++) { 
             cube[i][j][k] = 0.0;
         }
     }
 }
+// Initialize the first cell
+//
+cube[1][1][1] = 1.0e21;
 
-for (int i=0;i<masksize;i++)
+for (int i=0;i<realsize;i++)
 {
-	for (int j=0;j<masksize;j++)
+	for (int j=0;j<realsize;j++)
 	{
-		for (int k=0;k<masksize;k++)
+		for (int k=0;k<realsize;k++)
 		{
 			if ( (i==0) || (k==0) || (j==0)||
-			     (i==masksize-1) || (j==masksize-1) || (k==masksize-1))
+			     (i==realsize-1) || (j==realsize-1) || (k==realsize-1))
 			{
 				mask[i][j][k] = 0;
 			}
@@ -39,14 +42,11 @@ for (int i=0;i<masksize;i++)
 double diffusion_coefficient = 0.175; 
 double room_dimension = 5;                      // 5 Meters
 double speed_of_gas_molecules = 250.0;          // Based on 100 g/mol gas at RT
-double timestep = (room_dimension / speed_of_gas_molecules) / maxsize; // h in seconds
-double distance_between_blocks = room_dimension / maxsize;
+double timestep = (room_dimension / speed_of_gas_molecules) / realsize; // h in seconds
+double distance_between_blocks = room_dimension / realsize;
 
 double DTerm = diffusion_coefficient * timestep / (distance_between_blocks*distance_between_blocks);
 
-// Initialize the first cell
-//
-cube[1][1][1] = 1.0e21;
 
 
 int pass = 0;
@@ -57,31 +57,30 @@ double ratio = 0.0;
 do {
 
 
-    for (int i=1; i<maxsize-1; i++) 
-    { 
-        for (int j=1; j<maxsize-1; j++) { 
-            for (int k=1; k<maxsize-1; k++) { 
-		double change = DTerm * ((cube[i][j][k]-cube[i][j][k+1])*mask[i+1][j+1][k+2]);
+    for (int i=1; i<realsize-1; i++) { 
+        for (int j=1; j<realsize-1; j++) { 
+            for (int k=1; k<realsize-1; k++) { 
+		double change = DTerm * (cube[i][j][k+1]-cube[i][j][k])*(double)mask[i][j][k+1];
 		cube[i][j][k] = cube[i][j][k]-change;
 		cube[i][j][k+1] = cube[i][j][k+1]+change;
 
-		change = DTerm * ((cube[i][j][k]-cube[i][j][k-1])*mask[i+1][j+1][k]);
+		change = DTerm * (cube[i][j][k-1]-cube[i][j][k])*(double)mask[i][j][k-1];
 		cube[i][j][k] = cube[i][j][k]-change;
 		cube[i][j][k-1] = cube[i][j][k-1]+change;
 
-		change = DTerm * ((cube[i][j][k]-cube[i][j+1][k])*mask[i+1][j+2][k+1]);
+		change = DTerm * (cube[i][j+1][k]-cube[i][j][k])*(double)mask[i][j+1][k];
 		cube[i][j][k] = cube[i][j][k]-change;
 		cube[i][j+1][k] = cube[i][j+1][k]+change;
 
-		change = DTerm * ((cube[i][j][k]-cube[i][j-1][k])*mask[i+1][j][k+1]);
+		change = DTerm * (cube[i][j-1][k]-cube[i][j][k])*(double)mask[i][j-1][k];
 		cube[i][j][k] = cube[i][j][k]-change;
 		cube[i][j-1][k] = cube[i][j-1][k]+change;
 
-		change = DTerm * ((cube[i][j][k]-cube[i+1][j][k])*mask[i+2][j+1][k+1]);
+		change = DTerm * (cube[i+1][j][k]-cube[i][j][k])*(double)mask[i+1][j][k];
 		cube[i][j][k] = cube[i][j][k]-change;
 		cube[i+1][j][k] = cube[i+1][j][k]+change;
 
-		change = DTerm * ((cube[i][j][k]-cube[i-1][j][k])*mask[i][j+1][k+1]);
+		change = DTerm * (cube[i-1][j][k]-cube[i][j][k])*(double)mask[i-1][j][k];
 		cube[i][j][k] = cube[i][j][k]-change;
 		cube[i-1][j][k] = cube[i-1][j][k]+change;
 
@@ -93,22 +92,19 @@ time = time + timestep;
 
 double maxval = cube[0][0][0]; 
 double minval = cube[0][0][0];
-for (int i=0; i<maxsize; i++) { 
-    for (int j=0; j<maxsize; j++) { 
-        for (int k=0; k<maxsize; k++) { 
+for (int i=0; i<realsize; i++) { 
+    for (int j=0; j<realsize; j++) { 
+        for (int k=0; k<realsize; k++) { 
             maxval = Math.max(cube[i][j][k],maxval);
             minval = Math.min(cube[i][j][k],minval);
 
         }
     }
-//System.out.println("Max " + maxval);
-//System.out.println("Min " + minval);
-//System.out.println(i);
 }
 
 ratio = minval / maxval;
 
-System.out.println( ratio + " time = " + time);
+System.out.println( maxval + "             " + minval/*ratio + " time = " + time*/);
 
 } while ( ratio < 0.99 );
 
