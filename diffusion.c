@@ -1,21 +1,33 @@
 //#include "diffusion.h"
 #include <stdlib.h>
 #include <stdio.h>
+#define MAXSIZE 5
 
 int main (int argc, char *argv[]) {
 
-	int maxsize = 10;
+	int maxsize;
+	if(argc > 1) maxsize = atoi(argv[1]);
+	else maxsize = MAXSIZE;
 	double ***cube;
+	int ***mask;
 
 	int i, j, k, l, m, n;
 
-	for(i = 0; i < maxsize; i++) {
-		cube[i] = (double**) malloc(maxsize * sizeof(double*));
-	}
+	
+	cube = (double ***) malloc(maxsize * sizeof(double **));
+	mask = (int ***) malloc((maxsize + 2) * sizeof(int **));
 
 	for(i = 0; i < maxsize; i++) {
+		cube[i] = (double**) malloc(maxsize * sizeof(double*));
 		for(j = 0; j < maxsize; j++) {
 			cube[i][j] = (double*) malloc(maxsize * sizeof(double));
+		}
+	}
+
+	for(i = 0; i < maxsize + 2; i++){
+		mask[i] = (int**) malloc((maxsize + 2) * sizeof(int*));
+		for(j = 0; j < maxsize + 2; j++){
+			mask[i][j] = (int*) malloc((maxsize + 2) * sizeof(int));
 		}
 	}
 	
@@ -30,6 +42,8 @@ int main (int argc, char *argv[]) {
 			}
 		}
 	}
+
+	
 
 	printf("\nCube zeroed");
 
@@ -48,14 +62,31 @@ int main (int argc, char *argv[]) {
 	double time = 0.0;
 	double ratio = 0.0;
 	double change;
-
+	double maxval;
+	double minval;
+	double value;
+	double maxi, maxj, maxk;
+	maxi = maxj = maxk = maxsize;
+	i = j = k = 0;
 	do {
-		for(i = 0; i < maxsize; i++) {
-			for(j = 0; j < maxsize; j++) {
-				for(k = 0; k < maxsize; k++) {
-					for(l = 0; l < maxsize; l++) {
-						for(m = 0; m < maxsize; m++) {
-							for(n = 0; n < maxsize; n++) {
+		for(i = 0; i < maxsize/* && cube[i][j][k] != 0*/; i++) {
+			for(j = 0; j < maxsize/* && cube[i][j][k] != 0*/; j++) {
+				for(k = 0; k < maxsize/* && cube[i][j][k] != 0*/; k++) {
+					if(i == 0) l = 0;
+					else l = i - 1;
+					maxi = i + 1 ; //(int)((double)(maxsize-1)/(double)i);
+					if(maxi > maxsize - 1) maxi = maxsize - 1;
+					for(l; l <= maxi; l++) {
+						if(j == 0) m = 0;
+						else m = j - 1;
+						maxj = j + 1; //(int)((double)(maxsize-1)/(double)j);
+						if(maxj > maxsize - 1) maxj = maxsize - 1;
+						for(m; m <= maxj; m++) {
+							if(k == 0) n = 0;
+							else n = k - 1;
+							maxk = k + 1; //(int)((double)(maxsize-1)/(double)k);
+							if(maxk > maxsize - 1) maxk = maxsize - 1;
+							for(n; n <= maxk; n++) {
 								if( ((i == l) && (j == m) && (k == n+1)) ||
 								    ((i == l) && (j == m) && (k == n-1)) ||
 								    ((i == l) && (j == m+1) && (k == n)) ||
@@ -63,7 +94,7 @@ int main (int argc, char *argv[]) {
 								    ((i == l+1) && (j == m) && (k == n)) ||
 								    ((i == l-1) && (j == m) && (k == n)) ) {
 									
-									change = (cube[i][j][k] - cube[l][m][l]) * DTerm;
+									change = (cube[i][j][k] - cube[l][m][n]) * DTerm;
 									cube[i][j][k] = cube[i][j][k] - change;
 									cube[l][m][n] = cube[l][m][n] + change;
 								}
@@ -76,10 +107,9 @@ int main (int argc, char *argv[]) {
 		
 		time = time + timestep;
 	
-		double maxval = cube[0][0][0];
-		double minval = cube[0][0][0];
-		double value;	
-
+		maxval = cube[0][0][0];
+		minval = cube[0][0][0];
+		
 		for(i = 0; i < maxsize; i++){
 			for(j = 0; j < maxsize; j++){
 				for(k = 0; k < maxsize; k++) {
@@ -92,9 +122,11 @@ int main (int argc, char *argv[]) {
 	
 		ratio = minval / maxval;
 
-		printf("\n%lf time = %lf", ratio, time);
+		printf("\n%E time = %lf", ratio, time);
 
 	} while(ratio < 0.99);
 
-	printf("\nBox equilibrated in %lf seconds of simulated time.", time);
+	printf("\n%E ---- %E ---- %E\n", cube[0][0][0], cube[maxsize/2][maxsize/2][maxsize/2], cube[maxsize-1][maxsize-1][maxsize-1]);
+
+	printf("\nBox equilibrated in %lf seconds of simulated time.\n", time);
 }
