@@ -46,7 +46,7 @@ while ratio<.99:
 				change = (room[i,j,k] - room[i,j+1,k])*DTerm*mask[i,j+1,k]
 				room[i,j,k]-=change
 				room[i,j+1,k]+=change	
-				
+			
 				change = (room[i,j,k] - room[i,j-1,k])*DTerm*mask[i,j-1,k]
 				room[i,j,k]-=change
 				room[i,j-1,k]+=change	
@@ -54,19 +54,19 @@ while ratio<.99:
 				change = (room[i,j,k] - room[i,j,k+1])*DTerm*mask[i,j,k+1]
 				room[i,j,k]-=change
 				room[i,j,k+1]+=change	
-				
+					
 				change = (room[i,j,k] - room[i,j,k-1])*DTerm*mask[i,j,k-1]
 				room[i,j,k]-=change
 				room[i,j,k-1]+=change	
 	time = time + timestep
-	maxval = room[1][1][1]
-	minval = room[1][1][1]
+	maxval = room[1,1,1]
+	minval = room[1,1,1]
 
 	for i in xrange(1,rsize-1):
 		for j in xrange(1,rsize-1):
 			for k in xrange(1,rsize-1):
-				maxval = max(room[i][j][k], maxval)
-				minval = min(room[i][j][k], minval)
+				maxval = max(room[i,j,k], maxval)
+				minval = min(room[i,j,k], minval)
 
 	ratio = minval/maxval
 
