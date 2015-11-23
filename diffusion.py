@@ -14,7 +14,11 @@ for i in xrange(1,rsize-1):
 		for k in xrange(1,rsize-1):
 			mask[i,j,k] = 1
 
-#print(room)
+#Code for wall
+#for i in xrange(rsize/2, rsize-1)
+#	for j in xrange(rsize/2, rsize-1)
+#		mask[i,j,rsize/2] = 0
+
 
 diffusion_coefficent = 0.175
 room_dimension = 5.0
