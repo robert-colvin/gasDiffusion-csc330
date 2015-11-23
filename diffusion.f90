@@ -3,10 +3,12 @@ real room_dimension, speed_of_gas_molecules, diffusion_coefficent, timestep, dis
 integer i,j,k,l,m,n,z
 integer,parameter ::  ds= 10
 integer, parameter :: rsize = ds+2 
+integer, parameter :: hsize = rsize/2
 real lpass, time, ratio 
 real*4 change, mval, mival
 real*4, Dimension(rsize,rsize,rsize) :: room
 integer, Dimension(rsize,rsize,rsize) :: mask
+logical, Dimension(rsize,rsize,rsize) :: lmask
 diffusion_coefficent = 0.175
 room_dimension = 5.0
 speed_of_gas_molecules = 250.0
@@ -20,6 +22,7 @@ distance_between_blocks = room_dimension / ds
         do k=1, rsize
                 room(k,j,i) = 0.0
                 mask(k,j,i) = 0
+                lmask(k,j,i) = .false.
         enddo
         enddo
         enddo
@@ -31,10 +34,17 @@ distance_between_blocks = room_dimension / ds
         do j=2, rsize-1
         do k=2, rsize-1
                 mask(k,j,i) = 1
+                lmask(k,j,i) = .true.
         enddo
         enddo
         enddo
 
+        do i=rsize/2, rsize-1
+        do j=rsize/2, rsize-1
+                lmask(j,i,hsize) = .false.
+                mask(j,i,hsize) = 0
+        enddo
+        enddo  
         
         room(2,2,2) = 1.0e21
         lpass = 0
@@ -77,14 +87,9 @@ do while( ratio< .99)
         mval = room(2,2,2)
         mival = room(2,2,2)
 
-        do i=2, rsize-1
-        do j=2, rsize-1
-        do k=2, rsize-1
-        mval = MAX(mval,room(k,j,i))
-        mival = MIN(mival, room(k,j,i))
-        enddo
-        enddo
-        enddo
+        mval = MAXVAL(room, lmask)
+        mival = MINVAL(room, lmask)
+
         ratio = mival/mval
 
         !print *, ratio, time
