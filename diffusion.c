@@ -10,7 +10,7 @@ int main (int argc, char *argv[]) {
 	else maxsize = MAXSIZE;
 	maxsize += 2;
 	double cube[maxsize][maxsize][maxsize];
-	short int maskX[maxsize], maskY[maxsize], maskZ[maxsize];
+	short int mask[maxsize][maxsize][maxsize];
 
 	int i, j, k;
 
@@ -32,20 +32,19 @@ int main (int argc, char *argv[]) {
 			mask[i][j] = (short int*) malloc((maxsize) * sizeof(short int));
 		}
 	}
-*/	
-	//printf("\nCube created");
-	printf("\nVersion2\n");
+*/
 	/* Zero the cube */
 
 	for(i = 0; i < maxsize; i++) {
 		for(j = 0; j < maxsize; j++) {
 			for(k = 0; k < maxsize; k++) {
 				cube[i][j][k] = 0.0;
+				mask[i][j][k] = 0;
 			}
 		}
 	}
 
-	//printf("\nCube zeroed");
+	printf("\nCube zeroed");
 
 	double diffusion_coefficient = 0.175;
 	double room_dimension = 5;
@@ -57,28 +56,19 @@ int main (int argc, char *argv[]) {
 	// Initialize the fist cell
 	
 	cube[1][1][1] = 1.0e21;
-	/*
-	for(i = 0; i < maxsize; i++){
-		for(j = 0; j < maxsize; j++){
-			for(k = 0; k < maxsize; k++){
-				mask[i][j][k] = 0;
-			}
-		}
-	}
-	*/
-
-	maskX[0] = maskY[0] = maskZ[0] = 0;
-	maskX[maxsize-1] = maskY[maxsize-1] = maskZ[maxsize-1] = 0;
-	for (i=1;i<maxsize-1;i++){
-		maskX[i] = maskY[i] = maskZ[i] = 1;
-		
-		/*
-		for (j=1;j<maxsize-1;j++){
-			for (k=1;k<maxsize-1;k++){
+	for(i = 1; i < maxsize-1; i++){
+		for(j = 1; j < maxsize-1; j++){
+			for(k = 1; k < maxsize-1; k++){
 				mask[i][j][k] = 1;
 			}
 		}
-		*/
+	}
+	
+	//code for wall
+	for (i = maxsize - 1; i > maxsize/2; i--){
+		for(j = maxsize - 1; j > maxsize/2; j--){
+			mask[i][j][maxsize/2] = 0;
+		}		
 	}
 
 	int pass = 0;
@@ -89,38 +79,37 @@ int main (int argc, char *argv[]) {
 	double sum = 0.0;
 
 	do{
-
 		change = 0.0;
 
 		for (i=1; i<maxsize-1; i++) { 
 			for (j=1; j<maxsize-1; j++) { 
-				for (k=1; k<maxsize-1; k++) { 
-					change = (cube[i][j][k]-cube[i+1][j][k])*DTerm*(maskX[i+1]*maskY[j]*maskZ[k]);
+				for(k=1; k<maxsize-1; k++) {
+					change = (cube[i][j][k]-cube[i+1][j][k])*DTerm*(mask[i+1][j][k]);
 					cube[i][j][k]-=change;
 					cube[i+1][j][k]+=change;
 
 
-					change = (cube[i][j][k]-cube[i-1][j][k])*DTerm*(maskX[i-1]*maskY[j]*maskZ[k]);
+					change = (cube[i][j][k]-cube[i-1][j][k])*DTerm*(mask[i-1][j][k]);
 					cube[i][j][k]-=change;
 					cube[i-1][j][k]+=change;
 
 
-					change = (cube[i][j][k]-cube[i][j+1][k])*DTerm*(maskX[i]*maskY[j+1]*maskZ[k]);
+					change = (cube[i][j][k]-cube[i][j+1][k])*DTerm*(mask[i][j+1][k]);
 					cube[i][j][k]-=change;
 					cube[i][j+1][k]+=change;
 
 
-					change = (cube[i][j][k]-cube[i][j-1][k])*DTerm*(maskX[i]*maskY[j-1]*maskZ[k]);
+					change = (cube[i][j][k]-cube[i][j-1][k])*DTerm*(mask[i][j-1][k]);
 					cube[i][j][k]-=change;
 					cube[i][j-1][k]+=change;
 	
 
-					change = (cube[i][j][k]-cube[i][j][k+1])*DTerm*(maskX[i]*maskY[j]*maskZ[k+1]);
+					change = (cube[i][j][k]-cube[i][j][k+1])*DTerm*(mask[i][j][k+1]);
 					cube[i][j][k]-=change;
 					cube[i][j][k+1]+=change;
 
 
-					change = (cube[i][j][k]-cube[i][j][k-1])*DTerm*(maskX[i]*maskY[j]*maskZ[k-1]);
+					change = (cube[i][j][k]-cube[i][j][k-1])*DTerm*(mask[i][j][k-1]);
 					cube[i][j][k]-=change;
 					cube[i][j][k-1]+=change;
 				}
@@ -145,7 +134,7 @@ int main (int argc, char *argv[]) {
 	
 		ratio = minval / maxval;
 
-	//	printf("\n%E time = %lf", ratio, time);
+		printf("\n%E time = %lf", ratio, time);
 
 	} while(ratio < 0.99);
 
