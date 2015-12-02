@@ -74,7 +74,7 @@ while ratio<.99:
 
 	ratio = minval/maxval
 
-	print ratio, time 
+#	print ratio, time 
 
 print "Box equilibrated in "
 print time
