@@ -5,9 +5,15 @@
 
 int main (int argc, char *argv[]) {
 
-	int maxsize;
-	if(argc > 1) maxsize = atoi(argv[1]);
-	else maxsize = MAXSIZE;
+	int maxsize, wall;
+	if(argc != 3) {
+		printf("\nERROR: Run as ./diffusion size wall\n wall = 1 to add the wall, 0 otherwise\n");
+		exit(1);
+	}
+	else {
+		maxsize = atoi(argv[1]);
+		wall = atoi(argv[2]);
+	}
 	maxsize += 2;
 	double cube[maxsize][maxsize][maxsize];
 	short int mask[maxsize][maxsize][maxsize];
@@ -15,24 +21,6 @@ int main (int argc, char *argv[]) {
 	int i, j, k;
 
 	
-//	cube = (double ***) malloc(maxsize * sizeof(double **));
-	//mask = (short int ***) malloc((maxsize) * sizeof(short int **));
-/*
-	for(i = 0; i < maxsize; i++) {
-		cube[i] = (double**) malloc(maxsize * sizeof(double*));
-		for(j = 0; j < maxsize; j++) {
-			cube[i][j] = (double*) malloc(maxsize * sizeof(double));
-		}
-	}
-*/
-/*
-	for(i = 0; i < maxsize; i++){
-		mask[i] = (short int**) malloc((maxsize) * sizeof(short int*));
-		for(j = 0; j < maxsize; j++){
-			mask[i][j] = (short int*) malloc((maxsize) * sizeof(short int));
-		}
-	}
-*/
 	/* Zero the cube */
 
 	for(i = 0; i < maxsize; i++) {
@@ -44,8 +32,6 @@ int main (int argc, char *argv[]) {
 		}
 	}
 
-	printf("\nCube zeroed");
-
 	double diffusion_coefficient = 0.175;
 	double room_dimension = 5;
 	double speed_of_gas_molecules = 250.0;
@@ -54,7 +40,7 @@ int main (int argc, char *argv[]) {
 	double DTerm = diffusion_coefficient * timestep / (distance_between_blocks * distance_between_blocks);
 
 	// Initialize the fist cell
-	
+		
 	cube[1][1][1] = 1.0e21;
 	for(i = 1; i < maxsize-1; i++){
 		for(j = 1; j < maxsize-1; j++){
@@ -65,10 +51,12 @@ int main (int argc, char *argv[]) {
 	}
 	
 	//code for wall
-	for (i = maxsize - 1; i > maxsize/2; i--){
-		for(j = maxsize - 1; j > maxsize/2; j--){
-			mask[i][j][maxsize/2] = 0;
-		}		
+	if(wall == 1){
+		for (i = maxsize - 1; i > maxsize/2; i--){
+			for(j = maxsize - 1; j > maxsize/2; j--){
+				mask[i][j][maxsize/2] = 0;
+			}		
+		}
 	}
 
 	int pass = 0;
@@ -134,7 +122,7 @@ int main (int argc, char *argv[]) {
 	
 		ratio = minval / maxval;
 
-		printf("\n%E time = %lf", ratio, time);
+		//printf("\n%E time = %lf", ratio, time);
 
 	} while(ratio < 0.99);
 
@@ -147,7 +135,5 @@ int main (int argc, char *argv[]) {
 	}
 	printf("\nFinal # of particles: %E\n", sum);
 		
-	//printf("\n%E ---- %E ---- %E\n", cube[1][1][1], cube[maxsize/2][maxsize/2][maxsize/2], cube[maxsize-2][maxsize-2][maxsize-2]);
-
 	printf("\nBox equilibrated in %lf seconds of simulated time.\n", time);
 }
