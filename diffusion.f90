@@ -1,7 +1,9 @@
 program diffusion
+!Initialize all parameters and variables that are necessary
 real room_dimension, speed_of_gas_molecules, diffusion_coefficent, timestep, distance_between_blocks, DTerm
 integer i,j,k,l,m,n,z
-integer,parameter ::  ds= 10
+!Parameter for number of cubes is ds
+integer,parameter ::  ds= 50
 integer, parameter :: rsize = ds+2 
 integer, parameter :: hsize = rsize/2
 real lpass, time, ratio 
@@ -9,6 +11,8 @@ real*4 change, mval, mival
 real*4, Dimension(rsize,rsize,rsize) :: room
 integer, Dimension(rsize,rsize,rsize) :: mask
 logical, Dimension(rsize,rsize,rsize) :: lmask
+!Complete the calculations required for the diffusing of the gas and proper time
+!stepping
 diffusion_coefficent = 0.175
 room_dimension = 5.0
 speed_of_gas_molecules = 250.0
@@ -16,7 +20,7 @@ timestep = (room_dimension/speed_of_gas_molecules)/ds
 distance_between_blocks = room_dimension / ds
         DTerm = diffusion_coefficent * timestep /&
 (distance_between_blocks*distance_between_blocks)
-
+!Zero the mask, room, and logical mask arrays
         do i=1, rsize
         do j=1, rsize
         do k=1, rsize
@@ -29,7 +33,7 @@ distance_between_blocks = room_dimension / ds
 
 !        print *, room
 !        print *, mask
-
+!Correctly populate the mask defining the outside and inside
         do i=2, rsize-1
         do j=2, rsize-1
         do k=2, rsize-1
@@ -39,23 +43,30 @@ distance_between_blocks = room_dimension / ds
         enddo
         enddo
 
-        do i=rsize/2, rsize-1
-        do j=rsize/2, rsize-1
-                lmask(j,i,hsize) = .false.
-                mask(j,i,hsize) = 0
-        enddo
-        enddo  
-        
+!Code to make the wall in the logical and normal mask
+!        do i=rsize/2, rsize-1
+!        do j=rsize/2, rsize-1
+!                lmask(j,i,hsize) = .false.
+!                mask(j,i,hsize) = 0
+!        enddo
+!        enddo  
+
+!Place the gas into the room        
         room(2,2,2) = 1.0e21
+!Zero the time ratio and lpass variables for saftey
         lpass = 0
         time = 0.0
         ratio = 0.0
-
+!Run until the gas has properly diffused
 do while( ratio< .99)
-        !Go inner to outer on the loops instead of the normal outer to inner
+        !Three loops one for each dimension
         do i=2, rsize-1
         do j=2, rsize-1
         do k=2, rsize-1
+                !Do the calculation for diffusion for each of the six cubes that
+                !may or may not be in contact with the selected cube.
+                !Secondarilay reverse the use of the loops from inner to outer
+                !for effiency.
                 change = (room(k,j,i)-room(k+1,j,i))*DTerm*mask(k+1,j,i)
                 room(k,j,i) = room(k,j,i)-change
                 room(k+1,j,i) = room(k+1,j,i)+change        
@@ -82,18 +93,21 @@ do while( ratio< .99)
         enddo
         enddo
         enddo 
+        !Increment the time
         time = time + timestep
-
+        !Give max and min a value
         mval = room(2,2,2)
         mival = room(2,2,2)
-
+        !Find the max and min of the matrix using the built in function and
+        !utilising the logical mask to make such an operation possible
         mval = MAXVAL(room, lmask)
         mival = MINVAL(room, lmask)
-
+        !Find the current ratio of diffusion
         ratio = mival/mval
 
         !print *, ratio, time
         enddo
+        !State the amount of time it took to equilibrate the room
         print *, "Box equilibrated in "
         print *, time
         print *, " seconds of Simulated Time."
